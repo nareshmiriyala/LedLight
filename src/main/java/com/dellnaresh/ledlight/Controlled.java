@@ -8,12 +8,7 @@ package com.dellnaresh.ledlight; /**
  * second value is the measured distance in centimeters.
  */
 
-import com.pi4j.io.gpio.GpioController;
-import com.pi4j.io.gpio.GpioFactory;
-import com.pi4j.io.gpio.GpioPinDigitalInput;
-import com.pi4j.io.gpio.GpioPinDigitalOutput;
-import com.pi4j.io.gpio.Pin;
-import com.pi4j.io.gpio.RaspiPin;
+import com.pi4j.io.gpio.*;
 
 /**
  * DistanceMonitor class to monitor distance measured by sensor
@@ -33,10 +28,13 @@ public class Controlled {
 
     private final GpioPinDigitalInput echoPin;
     private final GpioPinDigitalOutput trigPin;
+    private static GpioPinDigitalOutput ledPin;
 
-    private Controlled( Pin echoPin, Pin trigPin ) {
+    private Controlled( Pin echoPin, Pin trigPin,Pin ledPin ) {
         this.echoPin = gpio.provisionDigitalInputPin( echoPin );
         this.trigPin = gpio.provisionDigitalOutputPin( trigPin );
+        // provision gpio pin #01 as an output pin and turn on
+         this.ledPin= gpio.provisionDigitalOutputPin(ledPin);
         this.trigPin.low();
     }
 
@@ -100,14 +98,21 @@ public class Controlled {
         return (long)Math.ceil( ( end - start ) / 1000.0 );  // Return micro seconds
     }
 
-    public static void main( String[] args ) {
+    public static void main(String[] args) {
         Pin echoPin = RaspiPin.GPIO_28;
         Pin trigPin = RaspiPin.GPIO_29;
-        Controlled monitor = new Controlled( echoPin, trigPin );
+        Pin ledPinId = RaspiPin.GPIO_07;
+        Controlled monitor = new Controlled( echoPin, trigPin,ledPinId );
 
         while( true ) {
             try {
-                System.out.printf( "%1$d,%2$.3f%n", System.currentTimeMillis(), monitor.measureDistance() );
+                float measureDistance = monitor.measureDistance();
+                System.out.printf( "%1$d,%2$.3f%n", System.currentTimeMillis(), measureDistance );
+                if(measureDistance>200){
+                    ledPin.high();
+                }else {
+                    ledPin.low();
+                }
             }
             catch( TimeoutException e ) {
                 System.err.println( e );
