@@ -6,6 +6,7 @@ package com.dellnaresh.ledlight; /**
  * pin is connected to pin # 11.  Output of the program are comma separated lines
  * where the first value is the number of milliseconds since unix epoch, and the
  * second value is the measured distance in centimeters.
+ * @see http://www.oracle.com/technetwork/articles/java/cruz-gpio-2295970.html
  */
 
 import com.pi4j.io.gpio.*;
