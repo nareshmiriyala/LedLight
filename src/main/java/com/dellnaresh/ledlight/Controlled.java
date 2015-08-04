@@ -5,58 +5,55 @@
  */
 package com.dellnaresh.ledlight;
 
-import com.pi4j.io.gpio.GpioController;
-import com.pi4j.io.gpio.GpioFactory;
-import com.pi4j.io.gpio.GpioPinDigitalOutput;
-import com.pi4j.io.gpio.PinState;
-import com.pi4j.io.gpio.RaspiPin;
+import com.pi4j.io.gpio.*;
+import com.pi4j.io.gpio.trigger.GpioCallbackTrigger;
+
+import java.util.concurrent.Callable;
 
 /**
  *
  * @author nareshm
  */
-public class Controlled {
-    
-    public static void main(String args[]) throws InterruptedException{
-        System.out.println("<--Pi4J--> GPIO Control Example ... started.");
-        
+public class Controlled{
+
+    public static void main(String[] args) throws InterruptedException {
+
+        System.out.printf("PIR Module Test (CTRL+C to exit)\n");
+
         // create gpio controller
         final GpioController gpio = GpioFactory.getInstance();
-        
+        // provision gpio pin #29, (header pin 40) as an input pin with its internal pull down resistor enabled
+        final GpioPinDigitalInput pir = gpio.provisionDigitalInputPin(RaspiPin.GPIO_29);
         // provision gpio pin #01 as an output pin and turn on
-        final GpioPinDigitalOutput pin = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_06, "MyLED", PinState.HIGH);
-         // set shutdown state for this pin
-        pin.setShutdownOptions(true, PinState.LOW);
+        final GpioPinDigitalOutput pin = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_07, "MyLED", PinState.LOW);
+        System.out.printf("Ready\n");
 
-        System.out.println("--> GPIO state should be: ON");
-        
-        Thread.sleep(5000);
-        
-        // turn off gpio pin #01
-        pin.low();
-        System.out.println("--> GPIO state should be: OFF");
+        // create a gpio callback trigger on the gpio pin
+        Callable<Void> callback = new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                System.out.println(" --> GPIO TRIGGER CALLBACK RECEIVED ");
+                pin.toggle();
+                return null;
+            }
+        };
+        // create a gpio callback trigger on the PIR device pin for when it's state goes high
+        pir.addTrigger(new GpioCallbackTrigger(PinState.HIGH, callback));
 
-        Thread.sleep(5000);
-
-        // toggle the current state of gpio pin #01 (should turn on)
-        pin.toggle();
-        System.out.println("--> GPIO state should be: ON");
-
-        Thread.sleep(5000);
-
-        // toggle the current state of gpio pin #01  (should turn off)
-        pin.toggle();
-        System.out.println("--> GPIO state should be: OFF");
-        
-        Thread.sleep(5000);
-
-        // turn on gpio pin #01 for 1 second and then off
-        System.out.println("--> GPIO state should be: ON for only 1 second");
-        pin.pulse(1000, true); // set second argument to 'true' use a blocking call
-        
         // stop all GPIO activity/threads by shutting down the GPIO controller
-        // (this method will forcefully shutdown all GPIO monitoring threads and scheduled tasks)
-        gpio.shutdown();
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                System.out.println("Interrupted, stopping...\n");
+                gpio.shutdown();
+            }
+        });
+
+        // keep program running until user aborts (CTRL-C)
+        for (;;) {
+            Thread.sleep(100);
+        }
+
     }
-    
+
 }

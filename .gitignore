@@ -16,6 +16,10 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+.idea
+LedLight.iml
+nb-configuration.xml
+nbactions.xml
 
 # =========================
 # Operating System Files
