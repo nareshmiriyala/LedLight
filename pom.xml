@@ -26,8 +26,8 @@
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
         <!-- DEFAULT RASPBERRY PI PROPERTIES -->
         <pi.host>192.168.137.5</pi.host>
         <pi.port>22</pi.port>

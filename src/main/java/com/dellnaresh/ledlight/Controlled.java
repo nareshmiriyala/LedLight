@@ -102,14 +102,14 @@ public class Controlled {
     public static void main(String[] args) {
         Pin echoPin = RaspiPin.GPIO_28;
         Pin trigPin = RaspiPin.GPIO_29;
-        Pin ledPinId = RaspiPin.GPIO_07;
+        Pin ledPinId = RaspiPin.GPIO_00;
         Controlled monitor = new Controlled( echoPin, trigPin,ledPinId );
 
         while( true ) {
             try {
                 float measureDistance = monitor.measureDistance();
                 System.out.printf( "%1$d,%2$.3f%n", System.currentTimeMillis(), measureDistance );
-                if(measureDistance>200){
+                if(measureDistance>400){
                     ledPin.high();
                 }else {
                     ledPin.low();
