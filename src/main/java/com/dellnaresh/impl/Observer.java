@@ -5,4 +5,6 @@ package com.dellnaresh.impl;
  */
 public interface Observer {
     void update(double distance);
+
+    void display();
 }

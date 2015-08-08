@@ -1,29 +1,35 @@
 package com.dellnaresh.sensors;
 
+import com.dellnaresh.controller.DistanceController;
 import com.dellnaresh.impl.Observer;
+import com.dellnaresh.ledlight.Controlled;
 import com.pi4j.io.gpio.*;
 
 import java.util.ArrayList;
 import java.util.List;
-
 /**
- * Created by nareshm on 6/08/2015.
+ * Class to monitor distance measured by an HC-SR04 distance sensor on a
+ * Raspberry Pi.
+ *
+ * Output of the program are comma separated lines
+ * where the first value is the number of milliseconds since unix epoch, and the
+ * second value is the measured distance in centimeters.
+ * @see http://www.oracle.com/technetwork/articles/java/cruz-gpio-2295970.html
  */
 public class DistanceSensor implements Sensor, Subject {
     //list to hold the observers
     private List<Observer> observerList;
     private double distance;
-    private final static float SOUND_SPEED = 340.29f;  // speed of sound in m/s
-    private final static int TRIG_DURATION_IN_MICROS = 10; // trigger duration of 10 micro s
     private final static int WAIT_DURATION_IN_MILLIS = 60; // wait 60 milli s
-    private final static int TIMEOUT = 2100;
     private final static GpioController gpio = GpioFactory.getInstance();
     private final GpioPinDigitalInput echoPinInput;
     private final GpioPinDigitalOutput triggerPinOutput;
+    private DistanceController distanceController;
 
-    DistanceSensor(Pin echoPin, Pin triggerPin) {
+    public DistanceSensor(Pin echoPin, Pin triggerPin) {
         this.echoPinInput = gpio.provisionDigitalInputPin(echoPin);
-        this.triggerPinOutput = gpio.provisionDigitalOutputPin( triggerPin );
+        this.triggerPinOutput = gpio.provisionDigitalOutputPin(triggerPin);
+        distanceController = new DistanceController(echoPinInput, triggerPinOutput);
         observerList = new ArrayList<>();
     }
 
@@ -44,8 +50,22 @@ public class DistanceSensor implements Sensor, Subject {
         observerList.forEach(observer -> observer.update(distance));
     }
 
-    public void distanceChanged() {
-        notifyObservers();
+    public void senseDistance() {
+        while (true) {
+            try {
+                distance = distanceController.measureDistance();
+            } catch (DistanceController.TimeoutException e) {
+                e.printStackTrace();
+            }
+
+            try {
+                Thread.sleep(WAIT_DURATION_IN_MILLIS);
+            } catch (InterruptedException ex) {
+                System.err.println("Interrupt during trigger");
+            }
+            if (distance > 0)
+                notifyObservers();
+        }
     }
 
 
