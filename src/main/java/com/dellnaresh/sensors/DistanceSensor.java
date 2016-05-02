@@ -2,7 +2,6 @@ package com.dellnaresh.sensors;
 
 import com.dellnaresh.controller.DistanceController;
 import com.dellnaresh.impl.Observer;
-import com.dellnaresh.ledlight.Controlled;
 import com.pi4j.io.gpio.*;
 
 import java.util.ArrayList;
@@ -20,7 +19,6 @@ public class DistanceSensor implements Sensor, Subject {
     //list to hold the observers
     private List<Observer> observerList;
     private double distance;
-    private final static int WAIT_DURATION_IN_MILLIS = 60; // wait 60 milli s
     private final static GpioController gpio = GpioFactory.getInstance();
     private final GpioPinDigitalInput echoPinInput;
     private final GpioPinDigitalOutput triggerPinOutput;
@@ -58,11 +56,6 @@ public class DistanceSensor implements Sensor, Subject {
                 e.printStackTrace();
             }
 
-            try {
-                Thread.sleep(WAIT_DURATION_IN_MILLIS);
-            } catch (InterruptedException ex) {
-                System.err.println("Interrupt during trigger");
-            }
             if (distance > 0)
                 notifyObservers();
         }
